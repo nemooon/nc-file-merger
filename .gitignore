@@ -1,0 +1,8 @@
+node_modules
+dist
+*.log
+.env
+uploads
+.DS_Store
+.claude
+.wrangler
