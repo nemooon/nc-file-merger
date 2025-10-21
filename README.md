@@ -34,8 +34,8 @@ npm install
 ### 開発モード
 
 ```bash
-# Vite開発サーバー（http://localhost:5173）
-npm run dev
+# フロントエンド（Vite, http://localhost:5173）
+npm run dev         # = npm run dev:client
 
 # 別ターミナルでCloudflare Workers（http://localhost:8787）
 npm run dev:worker
@@ -46,11 +46,14 @@ Viteの開発サーバーは `/api` へのリクエストを Cloudflare Workers 
 ### プロダクションビルド
 
 ```bash
-# TypeScriptをビルド
+# ビルド成果物をクリーンにしてからビルド
 npm run build
 
 # Cloudflare Workers にデプロイ
 npm run deploy
+
+# ビルド生成物のみ削除
+npm run clean
 ```
 
 ## Web UI の使い方
@@ -185,7 +188,11 @@ npm run deploy
 nc-file-merger/
 ├── src/
 │   ├── client/
-│   │   ├── App.tsx            # UIコンポーネント（Hono JSX）
+│   │   ├── components/        # UIコンポーネント群
+│   │   ├── hooks/             # 状態管理/副作用ロジック
+│   │   ├── types.ts           # フロントエンドの型定義
+│   │   ├── utils.ts           # 共有ユーティリティ
+│   │   ├── App.tsx            # ルートコンポーネント
 │   │   ├── index.css          # フロントエンドのスタイル
 │   │   └── main.tsx           # Viteエントリーポイント
 │   └── server/
@@ -193,9 +200,8 @@ nc-file-merger/
 │       ├── lib/
 │       │   ├── nc-merger.ts   # NCファイル結合のコアロジック
 │       │   ├── nc-validator.ts# Gコードバリデーター
-│       │   └── tool-remapper.ts# ツール番号再マッピング
-│       └── templates/
-│           └── default.ts     # デフォルトテンプレート
+│       │   ├── tool-remapper.ts# ツール番号再マッピング
+│       │   └── templates.ts   # テンプレート管理
 ├── samples/
 │   ├── sample1.nc            # サンプルNCファイル1（ドリル加工）
 │   ├── sample2.nc            # サンプルNCファイル2（ミーリング）
@@ -265,14 +271,33 @@ MIT
 import { NCMerger, MergeOptions, MergeResult } from './server/lib/nc-merger';
 import { NCValidator, ValidationResult } from './server/lib/nc-validator';
 import { ToolRemapper, ToolMapping } from './server/lib/tool-remapper';
+import { TemplateManager } from './server/lib/templates';
+
+const manager = new TemplateManager();
+```
+
+### フロントエンドの拡張例
+
+React Hooks 風の API で UI ロジックを組み立てられます：
+
+```typescript
+import { useFiles } from './client/hooks/useFiles';
+import { useApiActions } from './client/hooks/useApiActions';
+
+const { files, addFiles } = useFiles();
+const { handlePreview } = useApiActions({
+  files,
+  addComments: true,
+  preserveHeaders: false,
+  remapTools: true,
+  template: 'basic',
+  outputFilename: 'merged.nc'
+});
 ```
 
 ### カスタムテンプレートの作成
 
 ```typescript
-import { TemplateManager } from './server/lib/templates';
-
-const manager = new TemplateManager();
 manager.createCustomTemplate(
   'my-template',
   'My custom template',
