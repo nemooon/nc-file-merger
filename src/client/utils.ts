@@ -22,7 +22,7 @@ export const findCommonPrefix = (names: string[]): string => {
   while (i < first.length && first[i] === last[i]) {
     i++;
   }
-  return first.substring(0, i).replace(/[-_\s\d]+$/, '');
+  return first.substring(0, i).replace(/[-_\s]+$/, '');
 };
 
 export const suggestOutputFilename = (entries: UploadEntry[]): string => {
