@@ -46,6 +46,7 @@ export function App() {
     validation,
     preview,
     previewLines,
+    toolpathSegments,
     handleValidate,
     handlePreview,
     handleMerge,
@@ -222,7 +223,11 @@ export function App() {
           </div>
         </div>
 
-        <PreviewPanel preview={preview} previewLines={previewLines} />
+        <PreviewPanel
+          preview={preview}
+          previewLines={previewLines}
+          toolpathSegments={toolpathSegments}
+        />
         <ValidationPanel validation={validation} />
       </main>
 

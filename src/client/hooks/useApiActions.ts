@@ -3,11 +3,13 @@ import {
   PreviewResponse,
   PreviewLine,
   UploadEntry,
-  ValidationResponse
+  ValidationResponse,
+  ToolpathSegment
 } from '../types';
 import {
   buildPreviewLines,
-  getErrorMessage
+  getErrorMessage,
+  extractToolpathSegments
 } from '../utils';
 
 type UseApiActionsParams = {
@@ -131,6 +133,10 @@ export const useApiActions = ({
     () => buildPreviewLines(preview),
     [preview]
   );
+  const toolpathSegments: ToolpathSegment[] = useMemo(
+    () => extractToolpathSegments(preview?.mergedContent),
+    [preview?.mergedContent]
+  );
 
   return {
     isLoading,
@@ -138,6 +144,7 @@ export const useApiActions = ({
     errorMessage,
     preview,
     previewLines,
+    toolpathSegments,
     validation,
     handleValidate,
     handlePreview,

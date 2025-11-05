@@ -1,11 +1,13 @@
-import { PreviewResponse, ToolMapping } from '../types';
+import { PreviewResponse, ToolMapping, ToolpathSegment } from '../types';
+import { ToolpathPreview3D } from './ToolpathPreview3D';
 
 type PreviewPanelProps = {
   preview: PreviewResponse | null;
   previewLines: { key: string; lineNumber: number | null; content: string; isEllipsis?: boolean }[];
+  toolpathSegments: ToolpathSegment[];
 };
 
-export const PreviewPanel = ({ preview, previewLines }: PreviewPanelProps) => {
+export const PreviewPanel = ({ preview, previewLines, toolpathSegments }: PreviewPanelProps) => {
   if (!preview) return null;
 
   const conflictCount = preview.conflicts?.conflictingTools?.length ?? 0;
@@ -40,6 +42,16 @@ export const PreviewPanel = ({ preview, previewLines }: PreviewPanelProps) => {
             <div class="text-sm text-blue-800 space-y-1">
               {toolMappings.map(renderMapping)}
             </div>
+          </div>
+        )}
+
+        {toolpathSegments.length > 0 && (
+          <div class="mb-5 space-y-2">
+            <h3 class="text-sm font-semibold text-gray-900">3Dツールパス</h3>
+            <ToolpathPreview3D segments={toolpathSegments} />
+            <p class="text-xs text-gray-500">
+              マウスドラッグで回転、スクロールでズームできます。Rapid移動はシアンの破線、切削移動はオレンジの実線です。
+            </p>
           </div>
         )}
 

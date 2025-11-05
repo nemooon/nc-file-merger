@@ -64,3 +64,9 @@ export type PreviewLine = {
   content: string;
   isEllipsis?: boolean;
 };
+
+export type ToolpathSegment = {
+  start: [number, number, number];
+  end: [number, number, number];
+  rapid: boolean;
+};

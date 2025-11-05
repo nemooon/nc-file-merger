@@ -23,7 +23,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "hono": "^4.0.0"
+    "@types/three": "^0.181.0",
+    "hono": "^4.0.0",
+    "three": "^0.181.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.2025.1",

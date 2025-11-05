@@ -1,7 +1,8 @@
 import {
   PreviewResponse,
   PreviewLine,
-  UploadEntry
+  UploadEntry,
+  ToolpathSegment
 } from './types';
 
 export const createEntryId = (file: File) =>
@@ -73,6 +74,88 @@ export const buildPreviewLines = (data: PreviewResponse | null): PreviewLine[] =
   });
 
   return displayLines;
+};
+
+const commentPattern = /\(.*?\)|;.*$/g;
+const wordPattern = /([A-Za-z])([-+]?\d*\.?\d+)/g;
+
+export const extractToolpathSegments = (content?: string): ToolpathSegment[] => {
+  if (!content) return [];
+
+  const segments: ToolpathSegment[] = [];
+  const lines = content.split(/\r?\n/);
+  let position = { x: 0, y: 0, z: 0 };
+  let isAbsolute = true;
+  let activeMotion: 'rapid' | 'linear' | null = null;
+
+  for (const rawLine of lines) {
+    const sanitized = rawLine.replace(commentPattern, '').trim();
+    if (!sanitized) continue;
+
+    const matches = sanitized.matchAll(wordPattern);
+    let next = { ...position };
+    let motion = activeMotion;
+
+    for (const match of matches) {
+      const letter = match[1].toUpperCase();
+      const value = parseFloat(match[2]);
+
+      switch (letter) {
+        case 'G': {
+          if (Number.isNaN(value)) break;
+          const code = Math.round(value);
+          if (code === 90) {
+            isAbsolute = true;
+          } else if (code === 91) {
+            isAbsolute = false;
+          } else if (code === 0) {
+            motion = 'rapid';
+          } else if (code === 1) {
+            motion = 'linear';
+          }
+          break;
+        }
+        case 'X':
+          if (!Number.isNaN(value)) {
+            next.x = isAbsolute ? value : position.x + value;
+          }
+          break;
+        case 'Y':
+          if (!Number.isNaN(value)) {
+            next.y = isAbsolute ? value : position.y + value;
+          }
+          break;
+        case 'Z':
+          if (!Number.isNaN(value)) {
+            next.z = isAbsolute ? value : position.z + value;
+          }
+          break;
+        default:
+          break;
+      }
+    }
+
+    if (!motion) continue;
+
+    const hasMovement =
+      next.x !== position.x || next.y !== position.y || next.z !== position.z;
+
+    if (!hasMovement) {
+      activeMotion = motion;
+      continue;
+    }
+
+    segments.push({
+      start: [position.x, position.y, position.z],
+      end: [next.x, next.y, next.z],
+      rapid: motion === 'rapid'
+    });
+
+    position = next;
+    activeMotion = motion;
+  }
+
+  return segments;
 };
 
 export const getErrorMessage = (body: unknown): string | null => {
